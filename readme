@@ -1,1 +1,5 @@
-fully self-coded RAG (no AI, just reading off APIs)
+The big idea: Create a readable RAG system without using any AI to get an understanding of everything going on
+
+Stack
+- LangChain for Embedding, LLM Integration
+- OllamaLLM
