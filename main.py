@@ -10,6 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
 EMBEDDING_MODEL: str = 'llama3' # If changing this, make sure to also import the proper libraries
+GENERATIVE_MODEL: str = 'llama3' 
 CHUNK_SIZE: int = 512
 CHUNK_OVERLAP: int = 20
 PERSIST_DIRECTORY = 'db'
@@ -27,12 +28,23 @@ class QueryResponse(BaseModel):
     sources: str
 
 def embeddings():
+    '''
+        Embeds the text
+        Parameters:
+            - Embedding Model
+    '''
     embeddings = OllamaEmbeddings (
         model=EMBEDDING_MODEL,
     )
     return embeddings
 
 def extract_text(path):
+    ''' 
+        Given a path, chunks it and returns a dataset
+        Parameters: 
+            - Chunk Size
+            - Chunk Overlap
+    '''
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -52,6 +64,9 @@ def extract_text(path):
     return dataset
 
 def store_text(dataset):
+    '''
+        Stores text from dataset into persistent directory (db in our case)
+    '''
     Chroma.from_documents(
         documents=[dataset[i] for i in range(len(dataset))],
         embedding=embeddings(),
@@ -59,8 +74,15 @@ def store_text(dataset):
     )
 
 def generate_text(query):
+    '''
+        Given a query, uses the stored text as a retriever and generates an answer.
+        Parameters:
+            - Model
+            - Temperature
+            - Num Predict
+    '''
     model = OllamaLLM(
-        model = 'llama3',
+        model = GENERATIVE_MODEL,
         temperature = LLM_TEMPERATURE, 
         num_predict = LLM_NUM_PREDICT,
     )
