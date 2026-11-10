@@ -1,10 +1,11 @@
 The big idea: Create a readable RAG system mostly without using AI to get an understanding of everything going on
 
 Interface Stack
-- FastAPI
+- Streamlit (Full AI)
+- FastAPI (Slight AI)
 - ChromaDB
 
-AI Stack
+AI Stack (No AI)
 - LangChain for LLM Integration
 - BGE for Embedding & Reranking
 - OllamaLLM for Generation
