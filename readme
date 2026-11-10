@@ -1,5 +1,10 @@
-The big idea: Create a readable RAG system without using any AI to get an understanding of everything going on
+The big idea: Create a readable RAG system mostly without using AI to get an understanding of everything going on
 
-Stack
-- LangChain for Embedding, LLM Integration
-- OllamaLLM
+Interface Stack
+- FastAPI
+- ChromaDB
+
+AI Stack
+- LangChain for LLM Integration
+- BGE for Embedding & Reranking
+- OllamaLLM for Generation
