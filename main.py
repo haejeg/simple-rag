@@ -123,6 +123,18 @@ def generate_text(query):
 
     return answer, sources, docs
 
+###
+###
+###    Evaluation Metrics & Tests
+###    
+###    TODO: Cross Encoder Score, Token Overlap, Reciprocal Rank
+
+def reciprocal_rank(docs, expected):
+    for i, d in enumerate(docs, 1):
+        if os.path.basename(d.metadata['filename']) == expected:
+            return 1 / i
+    return 0.0
+
 def cosine(a, b):
     '''
         Cosine similarity function, gives a scalar number from -1 to 1 that measures how closely
@@ -141,9 +153,10 @@ def groundedness(answer, docs):
     scores = [cosine(a, c) for c in chunk_vecs]
     return max(scores), scores  
 
-'''
-    REST Interfaces
-'''
+###
+###    REST Interfaces
+###
+
 @app.post('/query', response_model=QueryResponse)
 def query(request: QueryRequest):
     '''
@@ -166,6 +179,17 @@ def query_similarity(request: QueryRequest):
     best, scores = groundedness(answer, docs)
     return SimilarityResponse(query=request.user_query, response=answer, sources=sources, similarity=best, chunk_scores=scores)
 
+
+@app.get('/config')
+def config():
+    '''
+        Returns the current hyperparameters, so the eval dashboard can log them with each test run
+    '''
+    return {
+        'EMBEDDING_MODEL': EMBEDDING_MODEL, 'GENERATIVE_MODEL': GENERATIVE_MODEL, 'RERANKER_MODEL': 'BAAI/bge-reranker-base',
+        'CHUNK_SIZE': CHUNK_SIZE, 'CHUNK_OVERLAP': CHUNK_OVERLAP, 'LLM_NUM_PREDICT': LLM_NUM_PREDICT,
+        'LLM_TEMPERATURE': LLM_TEMPERATURE, 'SEARCH_K': SEARCH_K, 'TOP_N': TOP_N,
+    }
 
 @app.delete('/db')
 def remove_db():
