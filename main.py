@@ -1,4 +1,6 @@
 import os
+import numpy as np
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
@@ -119,8 +121,25 @@ def generate_text(query):
 
     sources = sorted({os.path.basename(d.metadata['filename']) for d in docs})
 
-    return answer, sources
+    return answer, sources, docs
 
+def cosine(a, b):
+    '''
+        Cosine similarity function, gives a scalar number from -1 to 1 that measures how closely
+        two vectors point in the same direction
+    '''
+    a, b = np.array(a), np.array(b)
+    return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))
+
+def groundedness(answer, docs):
+    '''
+        Embeds the answer, and compares it with the embed documents
+    '''
+    emb = embeddings()
+    a = emb.embed_query(answer)
+    chunk_vecs = emb.embed_documents([d.page_content for d in docs])
+    scores = [cosine(a, c) for c in chunk_vecs]
+    return max(scores), scores  
 
 '''
     REST Interfaces
@@ -130,8 +149,23 @@ def query(request: QueryRequest):
     '''
         Sends a Query to the AI
     '''
-    answer, sources = generate_text(request.user_query)
+    answer, sources, docs = generate_text(request.user_query)
     return QueryResponse(query=request.user_query, response=answer, sources=sources)
+
+class SimilarityResponse(QueryResponse):
+    similarity: float
+    chunk_scores: List[float]
+
+@app.post('/query_similarity', response_model=SimilarityResponse)
+def query_similarity(request: QueryRequest):
+    '''
+        Runs the same thing as a normal query but also returns the cosine similarity
+    '''
+
+    answer, sources, docs = generate_text(request.user_query)
+    best, scores = groundedness(answer, docs)
+    return SimilarityResponse(query=request.user_query, response=answer, sources=sources, similarity=best, chunk_scores=scores)
+
 
 @app.delete('/db')
 def remove_db():
