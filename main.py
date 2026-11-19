@@ -17,12 +17,12 @@ EMBEDDING_MODEL: str = 'hf.co/CompendiumLabs/bge-base-en-v1.5-gguf' # If changin
 GENERATIVE_MODEL: str = 'llama3'
 CHUNK_SIZE: int = 512
 CHUNK_OVERLAP: int = 100
-PERSIST_DIRECTORY = 'db'
-DATA_DIRECTORY = 'sample-data' # Folder of .md files that /ingest reads from
-LLM_NUM_PREDICT = 512
-LLM_TEMPERATURE = 0.5
-SEARCH_K = 20 # Candidates fetched by vector search
-TOP_N = 5 # Chunks kept after reranking
+PERSIST_DIRECTORY: str = 'db'
+DATA_DIRECTORY: str = 'sample-data' # Folder of .md files that /ingest reads from
+LLM_NUM_PREDICT: int = 512
+LLM_TEMPERATURE: float = 0.5
+SEARCH_K: int = 20 # Candidates fetched by vector search
+TOP_N: int = 5 # Chunks kept after reranking
 
 app = FastAPI(title='simple rag')
 
@@ -146,6 +146,9 @@ def cosine(a, b):
 def groundedness(answer, docs):
     '''
         Embeds the answer, and compares it with the embed documents
+
+        TODO: We need a margin of comparison, possibly measuring how much the answer scores with its own chunks
+        rather than the other chunks.
     '''
     emb = embeddings()
     a = emb.embed_query(answer)
